@@ -1,0 +1,11 @@
+Hello world, this is a demonstration of building a thinking LLM.
+Language models learn from text data.
+Tokenization is a crucial first step.
+We will train a BPE tokenizer.
+Think before you answer.
+The answer is forty-two.
+<think>Let's consider the options.</think><answer>Option A seems best.</answer>
+<|im_start|>user
+What's up?<|im_end|>
+<|im_start|>assistant
+Not much!<|im_end|>

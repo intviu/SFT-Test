@@ -1,0 +1,3 @@
+{"conversations": [{"role": "user", "content": "Hello, how are you?"}, {"role": "assistant", "content": "I am doing well, thank you! How can I help you today?"}]}
+{"conversations": [{"role": "user", "content": "What is the capital of France?"}, {"role": "assistant", "content": "The capital of France is Paris."}]}
+{"conversations": [{"role": "user", "content": "Explain gravity in simple terms."}, {"role": "assistant", "content": "Gravity is the force that pulls objects towards each other. It's why things fall down to the ground!"}]}

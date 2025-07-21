@@ -1,0 +1,12 @@
+langchain_together
+langchain_groq
+langchain
+langchain-community
+langgraph
+datasets
+tqdm
+ragas
+PyPDF2
+pylcs
+pypdf
+langchain_openai
