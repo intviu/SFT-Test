@@ -1,11 +1,10 @@
 from langchain_openai import ChatOpenAI
-from langchain_groq import ChatGroq
 
 # --- Document Loading and Vector Store ---
 from langchain.document_loaders import PyPDFLoader
 from langchain.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import DashScopeEmbeddings
 
 # --- Prompting and Document Utilities ---
 from langchain.prompts import PromptTemplate
@@ -44,8 +43,9 @@ from ragas.metrics import (
 
 import langgraph
 
-from ragflow.helper_functions import escape_quotes
-from step1_init import book_quotes_list, chapter_summaries, current_model_name, encode_book, encode_chapter_summaries, encode_quotes, hp_pdf_path
+from helper_functions import escape_quotes
+from llm_utils import create_embeddings
+from step1_init import book_quotes_list, chapter_summaries, create_llm, current_model_name, encode_book, encode_chapter_summaries, encode_quotes, hp_pdf_path
 
 # --- Create or Load Vector Stores for Book Chunks, Chapter Summaries, and Book Quotes ---
 
@@ -56,7 +56,7 @@ if (
     os.path.exists("book_quotes_vectorstore")
 ):
     # If vector stores exist, load them using OpenAI embeddings
-    embeddings = OpenAIEmbeddings()
+    embeddings = create_embeddings()
     chunks_vector_store = FAISS.load_local(
         "chunks_vector_store", embeddings, allow_dangerous_deserialization=True
     )
@@ -165,9 +165,7 @@ keep_only_relevant_content_prompt = PromptTemplate(
 )
 
 # Initialize the LLM for filtering relevant content
-keep_only_relevant_content_llm = ChatOpenAI(
-    temperature=0, model_name=current_model_name, max_tokens=2000
-)
+keep_only_relevant_content_llm = create_llm()
 
 # Create the LLM chain for filtering relevant content
 # KeepRelevantContent 是一个 Pydantic 数据模型，用于定义和约束 LLM 输出的结构。

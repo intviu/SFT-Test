@@ -1,12 +1,11 @@
 # --- LangChain and LLM Imports ---
 from langchain_openai import ChatOpenAI
-from langchain_groq import ChatGroq
 
 # --- Document Loading and Vector Store ---
 from langchain.document_loaders import PyPDFLoader
 from langchain.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import DashScopeEmbeddings
 
 # --- Prompting and Document Utilities ---
 from langchain.prompts import PromptTemplate
@@ -17,6 +16,8 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables.graph import MermaidDrawMethod
+
+from langchain.embeddings import DashScopeEmbeddings
 
 # --- LangGraph for Workflow Graphs ---
 from langgraph.graph import END, StateGraph
@@ -57,6 +58,9 @@ from helper_functions import (
     extract_book_quotes_as_documents
 )
 
+from langchain_community.embeddings import DashScopeEmbeddings
+from llm_utils import create_embeddings, create_llm
+
 # --- Load environment variables (e.g., API keys) ---
 load_dotenv(override=True)
 
@@ -65,11 +69,11 @@ os.environ["PYDEVD_WARN_EVALUATION_TIMEOUT"] = "100000"
 
 
 # Set the OpenAI API key from environment variable (for use by OpenAI LLMs)
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
+os.environ["QWEN_API_KEY"] = os.getenv("QWEN_API_KEY")
+# os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
 
 # Retrieve the Groq API key from environment variable (for use by Groq LLMs)
-groq_api_key = os.getenv('GROQ_API_KEY')
+groq_api_key =''
 
 # Define the path to the Harry Potter PDF file.
 # This variable will be used throughout the notebook for loading and processing the book.
@@ -135,7 +139,7 @@ def create_chapter_summary(chapter):
     chapter_txt = chapter.page_content
 
     # Specify the LLM model and configuration
-    llm = ChatOpenAI(temperature=0, model_name=current_model_name,openai_api_key="sk-4337e199980542b9ba4bd34a90f7b7cf",openai_api_base='https://dashscope.aliyuncs.com/compatible-mode/v1')  
+    llm = create_llm()  
     gpt_35_turbo_max_tokens = 16000  # Maximum token limit for the model
     verbose = False  # Set to True for more detailed output
 
@@ -235,7 +239,7 @@ def encode_book(path, chunk_size=1000, chunk_overlap=200):
     cleaned_texts = replace_t_with_space(texts)
 
     # 4. Create OpenAI embeddings and encode the cleaned text chunks into a FAISS vector store
-    embeddings = OpenAIEmbeddings()
+    embeddings = create_embeddings()
     vectorstore = FAISS.from_documents(cleaned_texts, embeddings)
 
     # 5. Return the vector store
@@ -253,7 +257,7 @@ def encode_chapter_summaries(chapter_summaries):
         FAISS: A FAISS vector store containing the encoded chapter summaries.
     """
     # Create OpenAI embeddings instance
-    embeddings = OpenAIEmbeddings()
+    embeddings = create_embeddings()
 
     # Encode the chapter summaries into a FAISS vector store
     chapter_summaries_vectorstore = FAISS.from_documents(chapter_summaries, embeddings)
@@ -266,7 +270,7 @@ def encode_chapter_summaries(chapter_summaries):
 # encode_quotes 函数的作用是：将一本书中提取出来的所有引用（quotes，以 Document 对象列表形式传入）通过 OpenAI 的 Embeddings 进行向量化编码，
 # 并存入 FAISS 向量数据库，便于后续高效地进行相似性检索。
 # 具体流程如下：
-# 1. 创建 OpenAIEmbeddings 实例，用于将文本转换为向量。
+# 1. 创建 DashScopeEmbeddings 实例，用于将文本转换为向量。
 # 2. 调用 FAISS.from_documents 方法，将所有 quote 文本（Document 列表）批量编码为向量，并存入 FAISS 向量库。
 # 3. 返回这个包含所有 quote 向量的 FAISS 向量库对象。
 def encode_quotes(book_quotes_list):
@@ -280,7 +284,7 @@ def encode_quotes(book_quotes_list):
         FAISS: A FAISS vector store containing the encoded book quotes.
     """
     # Create OpenAI embeddings instance
-    embeddings = OpenAIEmbeddings()
+    embeddings = create_embeddings()
 
     # Encode the book quotes into a FAISS vector store
     quotes_vectorstore = FAISS.from_documents(book_quotes_list, embeddings)
@@ -291,4 +295,3 @@ def encode_quotes(book_quotes_list):
     print("文档数量：", len(quotes_vectorstore.docstore._dict) if hasattr(quotes_vectorstore, "docstore") else "未知")
     # Return the vector store
     return quotes_vectorstore
-

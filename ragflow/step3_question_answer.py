@@ -1,12 +1,10 @@
 # --- LangChain and LLM Imports ---
 from langchain_openai import ChatOpenAI
-from langchain_groq import ChatGroq
 
 # --- Document Loading and Vector Store ---
 from langchain.document_loaders import PyPDFLoader
 from langchain.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
 
 # --- Prompting and Document Utilities ---
 from langchain.prompts import PromptTemplate
@@ -43,8 +41,10 @@ from ragas.metrics import (
     answer_similarity
 )
 
+from llm_utils import create_embeddings
+
 import langgraph
-from step1_init import current_model_name, groq_api_key
+from step1_init import create_llm, current_model_name, groq_api_key
 
 
 # --- LLM-based Function to Rewrite a Question for Better Vectorstore Retrieval ---
@@ -64,12 +64,7 @@ class RewriteQuestion(BaseModel):
 rewrite_question_string_parser = JsonOutputParser(pydantic_object=RewriteQuestion)
 
 # Initialize the LLM for rewriting questions
-rewrite_llm = ChatGroq(
-    temperature=0,
-    model_name="llama3-70b-8192",
-    groq_api_key=groq_api_key,
-    max_tokens=4000
-)
+rewrite_llm = create_llm()
 
 # Define the prompt template for question rewriting
 rewrite_prompt_template = """
@@ -115,11 +110,7 @@ class QuestionAnswerFromContext(BaseModel):
     )
 
 # Initialize the LLM for answering questions with chain-of-thought reasoning
-question_answer_from_context_llm = ChatOpenAI(
-    temperature=0,
-    model_name=current_model_name,
-    max_tokens=2000
-)
+question_answer_from_context_llm = create_llm()
 
 # Define the prompt template with chain-of-thought examples and instructions
 question_answer_cot_prompt_template = """
